@@ -1,0 +1,70 @@
+<ui:component xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+	<p:dialog draggable="true" resizable="false" id="fileEditorDialog" position="right top" style="margin-top: 10px;margin-right: 20px;"
+		header="#{fileWalkerView.selectedDocumentModel.name}" showEffect="fade" hideEffect="fade"
+		widgetVar="fileEditorDialog" width="55%" height="700">
+		<p:layout fullPage="true">
+		<p:layoutUnit position="north" styleClass="noScrolllayoutUnit">
+		<h:form id="toolbarForm">
+			<p:toolbar>
+				<f:facet name="left">
+					<p:commandButton icon="ui-icon-disk"
+						onclick="$('#documentForm\\:saveBtn').click()"
+						disabled="#{not fileWalkerView.selectedDocumentModel.file.canWrite() or fileWalkerView.selectedDocumentModel.toBigToEdit or fileWalkerView.selectedDocumentModel.file.directory}" />
+					
+					<p:commandButton icon="ui-icon-trash"
+						onclick="$('#documentForm\\:delBtn').click()" oncomplete="PF('fileEditorDialog').hide()"
+						disabled="#{not fileWalkerView.selectedDocumentModel.file.canWrite()}">
+						<p:confirm header="Confirmation" message="Are you sure?" icon="ui-icon-alert" />
+					</p:commandButton>
+					
+
+					<p:commandButton id="downloadBtn"
+						disabled="#{not fileWalkerView.selectedDocumentModel.file.canRead()}"
+						ajax="false"
+						onclick="PrimeFaces.monitorDownload(PF('blockUIFileWalker').show(), PF('blockUIFileWalker').hide());"
+						icon="ui-icon-arrowthick-1-s">
+						<p:fileDownload value="#{fileWalkerView.downloadFile()}" />
+					</p:commandButton>
+					<span class="ui-separator"> <span
+						class="ui-icon ui-icon-grip-dotted-vertical" />
+					</span>
+					<p:selectBooleanCheckbox itemLabel="read"
+						value="#{fileWalkerView.selectedDocumentModel.file.canRead()}"
+						disabled="true" />
+					<p:selectBooleanCheckbox itemLabel="write"
+						value="#{fileWalkerView.selectedDocumentModel.file.canWrite()}"
+						disabled="true" />
+					<p:selectBooleanCheckbox itemLabel="execute"
+						value="#{fileWalkerView.selectedDocumentModel.file.canExecute()}"
+						disabled="true" />
+				</f:facet>
+			</p:toolbar>
+		</h:form>
+		</p:layoutUnit>
+		<p:layoutUnit position="center" styleClass="noXScrolllayoutUnit">
+		<h:form id="documentForm">
+			<pe:codeMirror id="documentView" theme="eclipse" type="log"
+				lineNumbers="true"
+				value="#{fileWalkerView.selectedDocumentModel.fileContent}" />
+
+			<p:commandButton style="display: none;" id="saveBtn"
+				disabled="#{not fileWalkerView.selectedDocumentModel.file.canWrite() or fileWalkerView.selectedDocumentModel.toBigToEdit or fileWalkerView.selectedDocumentModel.file.directory}"
+				icon="ui-icon-disk" title="save file"
+				actionListener="#{fileWalkerView.saveFile()}" update=":msgs" />
+
+			<p:commandButton style="display: none;" id="delBtn"
+				icon="ui-icon-trash" title="delete file"
+				disabled="#{not fileWalkerView.selectedDocumentModel.file.canWrite()}"
+				actionListener="#{fileWalkerView.deleteFile()}"
+				update=":msgs :fileWalkerForm:docs :documentForm :toolbarForm :dockForm:dockMenu" />
+		</h:form>
+		</p:layoutUnit>
+		</p:layout>
+	</p:dialog>
+</ui:component>

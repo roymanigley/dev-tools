@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:component xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+	<p:layout fullPage="true">
+		<p:layoutUnit position="center">
+			<h:form id="sqlToolbarForm">
+				<p:toolbar>
+					<f:facet name="left">
+						<p:commandButton icon="ui-icon-circle-triangle-e"
+							onclick="$('#editorForm\\:executeQueryBtn').click();"
+							title="Run: [ Ctrl + Enter ]" />
+							
+						<p:commandButton icon="ui-icon-refresh" id="refreshBtn"
+							actionListener="#{sqlEditorView.setEditorContent('')}"
+							update=":editorForm:codeMirror"
+							title="Refresh: [ Ctrl + I ]" />
+						
+						
+						<p:commandButton icon="ui-icon-link"
+							update=":editConnectionForm"
+							oncomplete="PF('editConnectionDialog').show()"
+							title="Edit connection" />
+					</f:facet>
+					
+					<f:facet name="right">
+			            <!-- <p:selectOneMenu 
+			            	rendered="#{not empty sqlEditorView.editorSession.sqlQueryHistory}"
+			            	value="#{sqlEditorView.editorContentAppend}"
+			            	style="width:250px;"
+			            	filter="true"
+			            	filterMatchMode="contains">
+			            	<f:selectItem itemLabel="Query History" itemValue="#{null}"  />
+			            	<f:selectItems 
+			            		var="r"
+			            		value="#{sqlEditorView.editorSession.sqlQueryHistory}" 
+			            		itemLabel="#{r}" itemValue="#{r}" />
+			            	<p:ajax update=":editorForm:codeMirror" />
+			            </p:selectOneMenu>
+			            <span class="ui-separator">
+			                <span class="ui-icon ui-icon-grip-dotted-vertical" />
+			            </span>
+			             -->
+					</f:facet>
+				</p:toolbar>
+			</h:form>
+			
+			<p:dialog id="editConnectionDialog" dynamic="true" widgetVar="editConnectionDialog" modal="true" appendTo="@(body)" resizable="false">
+				<h:form id="editConnectionForm">
+					<p:panelGrid columns="2" styleClass="ui-noborder">
+						<p:outputLabel value="JDBC-Url" for="jdbcUrl" />
+						<p:inputText id="jdbcUrl" value="#{sqlEditorView.editorSession.currentConnectionModel.jdbcUrl}" style="width:350px;" required="true" />
+						
+						<p:outputLabel value="Username" for="username" />
+						<p:inputText id="username" value="#{sqlEditorView.editorSession.currentConnectionModel.username}" style="width:350px;" required="true" />
+						
+						<p:outputLabel value="Password" for="password" />
+						<p:inputText id="password" type="password" value="#{sqlEditorView.editorSession.currentConnectionModel.password}" style="width:350px;" required="true" />
+						
+						<p:outputLabel value="SQL Autocomplete"/>
+						<p:selectBooleanCheckbox value="#{sqlEditorView.editorSession.autoRefresh}" />
+					</p:panelGrid>
+					<p:panelGrid columns="1" style="width: 100%;text-align:center;" styleClass="ui-noborder">
+						<p:commandButton 
+							validateClient="true"
+							icon="ui-icon-disk"
+							onclick="PF('blockAll').show();"
+							update=":editorForm:codeMirror :msgsSQL"
+							oncomplete="PF('blockAll').hide(); if (args &amp;&amp; !args.validationFailed) { PF('editConnectionDialog').hide(); }"
+							actionListener="#{sqlEditorView.editorSession.init()}" />
+					</p:panelGrid>
+				</h:form>
+			</p:dialog>
+			<h:form id="editorForm">
+			<p:outputLabel for="codeMirror" value="SQL Query" style="display:none;" />
+			 <pe:codeMirror id="codeMirror"  
+			 	mode="text/x-sql"
+			 	rendered="true"
+			 	required="true"
+			    widgetVar="codeMirror" 
+			    theme="eclipse" value="#{sqlEditorView.editorContent}" lineNumbers="true"  
+			    extraKeys="{ 'Ctrl-Space': function(cm) { CodeMirror.showHint(cm, CodeMirror.hint.sql, #{sqlEditorView.editorSession.sqlAutocomplete} );}, 'Ctrl-I': function(cm) { $('#sqlToolbarForm\\:refreshBtn').click() }, 'Ctrl-Enter': function(cm) { if(window.getSelection().toString() == ''){ $('#editorForm\\:executeQueryBtn').click(); } else{ executeQuerySelected(window.getSelection().toString()); } } }">
+					<p:ajax event="blur" update="codeMirror" />
+			   </pe:codeMirror> 
+			   <p:commandButton icon="ui-icon-circle-triangle-e"
+			   		style="display:none;"
+					onclick="PF('blockAll').show();"
+					widgetVar="executeQueryBtn"
+					id="executeQueryBtn"
+					oncomplete="PF('blockAll').hide();"
+					validateClient="true"
+					actionListener="#{sqlEditorView.executeQuery()}"
+					update=":resultForm:records :msgsSQL :sqlToolbarForm" /> 	
+				
+				<pe:remoteCommand 
+					name="executeQuerySelected"
+					onstart="PF('blockAll').show();"
+					oncomplete="PF('blockAll').hide();"
+					update=":resultForm:records :msgsSQL :sqlToolbarForm"
+					actionListener="#{sqlEditorView.executeQuerySelection}">
+					<pe:methodSignature parameters="java.lang.String"  />
+					<pe:methodParam name="sql" />
+				</pe:remoteCommand>
+			</h:form>
+
+		</p:layoutUnit>
+		<p:layoutUnit position="south" size="400" resizable="true">
+			<p:messages id="msgsSQL" autoUpdate="false" showDetail="true" escape="false"/>
+			<h:form id="resultForm">
+			    
+				<p:dataTable resizableColumns="true"
+					filteredValue="#{sqlEditorView.tableModel.filteredData}"
+					rowIndexVar="rowIndex"
+					id="records" 
+					var="record" value="#{sqlEditorView.tableModel.data}"
+					widgetVar="records"
+					scrollRows="20" 
+					liveScroll="true"
+					scrollable="true" 
+					scrollHeight="200"
+					selectionMode="single"
+					rowKey="#{record.toString()}"
+					selection="#{sqlEditorView.tableModel.selectedRow}" >
+					
+					<p:ajax event="contextMenu" update="@this" />
+					
+					<f:facet name="header" style="text-align: none;">
+						<p:outputPanel rendered="#{not empty sqlEditorView.tableModel}" columns="1" style="text-align: left;">
+								<h:commandLink title="export: #{sqlEditorView.tableModel.guessedTableName}.csv" disabled="#{empty sqlEditorView.tableModel.data}">
+							        <p:graphicImage name="images/csv.png" />
+							        <p:dataExporter type="csv" target="records" fileName="#{sqlEditorView.tableModel.guessedTableName}" pageOnly="true" />
+							    </h:commandLink>
+							    
+								<h:commandLink title="export: #{sqlEditorView.tableModel.guessedTableName}.xml" disabled="#{empty sqlEditorView.tableModel.data}">
+							        <p:graphicImage name="images/xml.png" />
+							        <p:dataExporter type="xml" target="records" fileName="#{sqlEditorView.tableModel.guessedTableName}" pageOnly="true" />
+							    </h:commandLink>
+							    
+								<h:commandLink title="export: #{sqlEditorView.tableModel.guessedTableName}.pdf" disabled="#{empty sqlEditorView.tableModel.data}">
+							        <p:graphicImage name="images/pdf.png" />
+							        <p:dataExporter type="pdf" target="records" fileName="#{sqlEditorView.tableModel.guessedTableName}" pageOnly="true" />
+							    </h:commandLink>
+							    
+								<h:commandLink title="export: #{sqlEditorView.tableModel.guessedTableName}.xls" disabled="#{empty sqlEditorView.tableModel.data}">
+							        <p:graphicImage name="images/xls.png" />
+							        <p:dataExporter type="xls" target="records" fileName="#{sqlEditorView.tableModel.guessedTableName}" pageOnly="true" />
+							    </h:commandLink>
+							    
+							    <p:commandButton 
+							    	style="float:right;display:none" 
+							    	id="downloadDbUnit" 
+							    	disabled="#{empty sqlEditorView.tableModel.data}" 
+							    	widgetVar="downloadDbUnit" 
+							    	value="DBUnit Download" 
+							    	ajax="false" 
+							    	icon="ui-icon-arrowthick-1-s">
+							        <p:fileDownload value="#{sqlEditorView.downloadDBUnit()}" />
+							    </p:commandButton>
+							    
+							    <p:commandButton style="float:right;" 
+								    id="prepareDownloadDbUnit" 
+								    title="export: DBUnitDump-#{sqlEditorView.tableModel.guessedTableName}.xml" 
+								    disabled="#{empty sqlEditorView.tableModel.data}" 
+								    widgetVar="prepareDownloadDbUnit" 
+								    value="DBUnit" 
+								    ajax="true" 
+								    onclick="PF('blockAll').show();" 
+									actionListener="#{sqlEditorView.prepareDBUnit()}"
+								    oncomplete="$('#resultForm\\:records\\:downloadDbUnit').click();PF('blockAll').hide();"
+								    icon="ui-icon-arrowthick-1-s" 
+								    update=":msgsSQL">
+							    </p:commandButton>
+							    
+							    <script type="text/javascript">
+								function start() {
+								    PF('blockAll').show();
+								}
+								 
+								function stop() {
+								    PF('blockAll').hide();
+								}
+								</script>
+					    </p:outputPanel>
+					</f:facet>
+										
+					<!-- <p:column exportable="false" headerText="Row Nr." width="30" resizable="true" rendered="#{not empty sqlEditorView.tableModel.data}">
+						<p:outputLabel value="#{rowIndex + 1}" />
+					</p:column> -->
+					
+					<p:columns resizable="true" toggleable="true"
+						value="#{sqlEditorView.tableModel.columns}" 
+						var="column"
+						columnIndexVar="colIndex" 
+						filterable="true"
+						sortable="true"
+						filterBy="#{record[colIndex]}" 
+						filterMatchMode="contains" 
+						sortBy="#{record[colIndex]}">
+						<f:facet name="header">
+							<h:outputText value="#{column.header}" />
+						</f:facet>
+						<h:outputText value="#{record[colIndex]}" />
+					</p:columns>
+				</p:dataTable>
+				<p:contextMenu for="records">
+			        <p:menuitem value="Update" icon="ui-icon-pencil" actionListener="#{sqlEditorView.toUpdateQuery}" update="editorForm:codeMirror" />
+			        <p:menuitem value="Insert" icon="ui-icon-plus" actionListener="#{sqlEditorView.toInsertQuery}" update="editorForm:codeMirror" />
+			        <p:menuitem value="Delete" icon="ui-icon-trash" actionListener="#{sqlEditorView.toDeleteQuery}" update="editorForm:codeMirror" />
+			    </p:contextMenu>
+			</h:form>
+			
+			<p:dialog header="Loading..." widgetVar="blockAll" closable="false" resizable="false" modal="true" appendTo="@(body)">
+				<p:graphicImage value="/resources/images/loading-spinner.gif" />
+			</p:dialog>
+		</p:layoutUnit>
+	</p:layout>
+</ui:component>

@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:component xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+	<p:layout fullPage="true">
+		<!-- <p:layoutUnit position="center"> -->
+		<!-- </p:layoutUnit> -->
+		
+		
+		<p:layoutUnit position="south" collapsed="false" collapsible="true" resizable="true" closable="true" size="100">
+			<h:form>
+			    <p:fileUpload
+			    	fileUploadListener="#{fileWalkerView.handleFileUpload}" 
+			    	mode="advanced" 
+			    	auto="true"
+			    	dragDropSupport="true"
+			        update=":fileWalkerForm:docs :msgs" sizeLimit="999999999999" allowTypes="/^.*$/" />
+			</h:form>
+		</p:layoutUnit>
+		
+		<p:layoutUnit position="north" styleClass="noScrolllayoutUnit">
+			<h:form id="toolbarFormExplorer">
+				<p:toolbar>
+					<f:facet name="left">
+						<p:commandButton 
+							style="display:none"
+							actionListener="#{fileWalkerView.init()}" 
+							icon="ui-icon-circle-triangle-e" 
+							validateClient="true" 
+							title="build tree" 
+							update=":fileWalkerForm :toolbarFormExplorer"
+							onclick="PF('blockUIFileWalker').show();"
+							oncomplete="PF('blockUIFileWalker').hide();"/>
+						<p:commandButton icon="ui-icon-circle-triangle-w"
+							validateClient="true" 
+							title="go back"
+							actionListener="#{fileWalkerView.goBack()}"
+							update=":fileWalkerForm :toolbarFormExplorer"
+							onclick="PF('blockUIFileWalker').show();"
+							oncomplete="PF('blockUIFileWalker').hide();" />
+						<p:outputLabel for="rootPath" value="Path" style="display: none" />
+						<p:inputText id="rootPath" value="#{fileWalkerView.currendDir}" style="width: 400px;" />
+					    <span class="ui-separator">
+			                <span class="ui-icon ui-icon-grip-dotted-vertical" />
+			            </span>
+						<!--<p:selectBooleanCheckbox itemLabel="walk recursive" value="#{fileWalkerView.walkRecursive}" /> -->
+					</f:facet>
+					
+					
+					<f:facet name="right">
+						<p:inputText placeholder="search" autocomplete="off" type="search" id="searchInput" style="width: 100%;" onkeyup="searchFile($('#toolbarFormExplorer\\:searchInput').val());" />
+					</f:facet>
+				</p:toolbar>
+			</h:form>
+		</p:layoutUnit>
+		
+		
+		<p:layoutUnit position="center" resizable="true" styleClass="noXScrolllayoutUnit" size="250" closable="true">
+			<h:form id="fileWalkerForm">
+
+				<p:tree id="docs" value="#{fileWalkerView.root}" var="doc" 
+					selectionMode="single" style="width: 100%;"
+					selection="#{fileWalkerView.selectedNode}" dynamic="true" onNodeClick="PF('blockUIFileWalker').show();">
+					<p:ajax event="select" update=":toolbarFormExplorer :fileWalkerForm:docs :documentForm:documentView" oncomplete="PF('blockUIFileWalker').hide();" />
+					<p:treeNode expandedIcon="ui-icon-folder-open"
+						collapsedIcon="ui-icon-folder-collapsed">
+						<h:outputText value="#{doc.name}" />
+					</p:treeNode>
+					<p:treeNode type="document" icon="ui-icon-document">
+						<h:outputText value="#{doc.name}" />
+					</p:treeNode>
+				</p:tree>
+
+				<p:contextMenu id="conextMenu" for="docs">
+					<p:menuitem value="View" update=":msgs :documentForm:documentView :toolbarFormExplorer :dockForm:dockMenu :fileEditorDialog"
+						actionListener="#{fileWalkerView.displaySelectedSingle}" onclick="PF('blockUIFileWalker').show();"
+						icon="ui-icon-search" oncomplete="PF('blockUIFileWalker').hide();PF('fileEditorDialog').show();" />
+					<p:menuitem value="Delete" update="docs :msgs :dockForm:dockMenu"
+						actionListener="#{fileWalkerView.deleteFile()}"
+						icon="ui-icon-close">
+						<p:confirm header="Confirmation" message="Are you sure?" icon="ui-icon-alert" />
+					</p:menuitem>
+					<p:menuitem value="Download" update="docs"
+						oncomplete="$('#toolbarForm\\:downloadBtn').click()"
+						icon="ui-icon-arrowthick-1-s" />
+				</p:contextMenu>
+			</h:form>			
+			<p:dialog header="Loading..." widgetVar="blockUIFileWalker" closable="false" resizable="false" modal="true" appendTo="@(body)">
+				<p:graphicImage value="/resources/images/loading-spinner.gif" />
+			</p:dialog>
+			
+			<script>
+				function searchFile(input) {
+					$(".ui-treenode-label").each(function(){ console.log($(this).text());  if ($(this).text().toLowerCase().indexOf(input.trim().toLowerCase()) == -1) { $(this).parent().parent().hide(); } else { $(this).parent().parent().show(); } });
+				}
+			</script>
+		</p:layoutUnit>
+	</p:layout>
+</ui:component>

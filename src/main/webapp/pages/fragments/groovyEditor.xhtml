@@ -1,0 +1,82 @@
+<ui:component xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+	<p:layout fullPage="true">
+		<p:layoutUnit position="north" styleClass="noScrolllayoutUnit">
+		<h:form id="groovyToolbarForm">
+			<p:toolbar>
+				<f:facet name="left">
+					<p:commandButton icon="ui-icon-circle-triangle-e"
+							onclick="$('#groovyScriptForm\\:executeScriptBtn').click();"
+							title="Run: [ Ctrl + Enter ]" />
+				</f:facet>
+			</p:toolbar>
+		</h:form>
+		</p:layoutUnit>
+		<p:layoutUnit position="center" styleClass="noXScrolllayoutUnit">
+		<h:form id="groovyScriptForm">
+			<p:outputLabel for="codeMirrorGroovy" value="Groovy script" style="display:none;" />
+			<pe:codeMirror id="codeMirrorGroovy" 
+				theme="eclipse"
+			 	mode="text/x-scala"
+				lineNumbers="true"
+				extraKeys="{ 'Ctrl-Space': function(cm) { CodeMirror.showHint(cm, CodeMirror.hint.auto );}, 'Ctrl-Enter': function(cm) { if(window.getSelection().toString() == ''){ $('#groovyScriptForm\\:executeScriptBtn').click(); } else{ executeScriptSelected(window.getSelection().toString()); } } }"
+				value="#{groovyEditorView.script}">
+				<p:ajax event="blur" update="codeMirrorGroovy" />
+			</pe:codeMirror>
+
+			<p:commandButton icon="ui-icon-circle-triangle-e"
+					style="display:none;"
+					onclick="PF('blockGroovyProcess').show();"
+					widgetVar="executeScriptBtn"
+					id="executeScriptBtn"
+					oncomplete="PF('blockGroovyProcess').hide();"
+					validateClient="true"
+					actionListener="#{groovyEditorView.executeScript()}"
+					update=":msgs :groovyToolbarForm" /> 
+			
+			<pe:remoteCommand 
+				name="executeScriptSelected"
+				onstart="PF('blockGroovyProcess').show();"
+				oncomplete="PF('blockGroovyProcess').hide();"
+				update=":msgs :groovyToolbarForm"
+				actionListener="#{groovyEditorView.executeScriptSelection}">
+				<pe:methodSignature parameters="java.lang.String"  />
+				<pe:methodParam name="script" />
+			</pe:remoteCommand>
+		</h:form>
+		
+		
+		<p:dialog header="Executing Groovy script..." widgetVar="blockGroovyProcess" closable="false" resizable="false" modal="true" appendTo="@(body)">
+			<p:graphicImage value="/resources/images/loading-spinner.gif" />
+			<h:form id="blockGroovyProcessForm">
+				<p:panelGrid columns="1" style="width:100%; text-align:center" styleClass="ui-noborder">
+					<p:commandButton
+						ajax="true"
+						async="true"
+						actionListener="#{groovyEditorView.stopScript()}"
+						onclick="PF('blockGroovyProcess').hide();PF('blockAll').show();"
+						oncomplete="PF('blockAll').hide();"
+						value="cancel process"
+						icon="ui-icon-close"
+						update=":msgs"/>
+				</p:panelGrid>
+			</h:form>
+		</p:dialog>
+		
+		<p:dialog header="Groovy Output" id="groovyOutput" widgetVar="groovyOutput" closable="true" width="40%" height="700" resizable="false" modal="true" appendTo="@(body)">
+			<pe:codeMirror id="codeMirrorGroovy" 
+				theme="eclipse"
+				readonly="true"
+			 	mode="text/x-tlv"
+				lineNumbers="true"
+				value="#{groovyEditorView.output}" />
+		</p:dialog>
+		
+		</p:layoutUnit>
+	</p:layout>
+</ui:component>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<dataset>
+  <ANREDE ID_ANREDE="7" TEXT="Herr / Monsieur" />
+  <ANREDE ID_ANREDE="3" TEXT="Frau / Madame" />
+  <ANREDE ID_ANREDE="4" TEXT="Firma / Enterprise"/>
+</dataset>

@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<h:head>
+	<style>
+	
+root {
+    font-size: 12px;
+    font-family: monospace;
+}
+/* We can adjust the font-size value if we wish to make PrimeFaces components stand out by making them larger or smaller so that they don't take up as much space on the page */
+
+.ui-widget {
+    font-family: monospace;
+    font-size: 1em;
+}
+.ui-widget .ui-widget {
+    font-size: 1em;
+}
+.ui-widget input,
+.ui-widget select,
+.ui-widget textarea,
+.ui-widget button {
+    font-family: monospace;
+}
+
+.ui-tree {
+	border: 0;
+}
+.ui-widget-header {
+	background: none;
+}
+
+div.ui-terminal-content>div>div {
+	white-space: pre;
+}
+
+#terminalForm\3a terminal {
+	background: black;
+    color: teal;
+}
+
+.ui-widget-content .ui-state-default {
+	background: none;
+}
+
+.ui-datatable .ui-column-filter {
+	width: 100%;
+}
+
+.ui-widget-header .ui-datatable-scrollable-footer {
+	display: none;
+	visibility: hidden;
+}
+.ui-datatable-scrollable-footer-box {
+	display: none;
+	visibility: hidden;
+}
+
+.CodeMirror {
+	height: 100%;
+}
+.CodeMirror .cm-s-eclipse   {
+	height: 800px;
+}
+.ui-tree-container {
+	overflow: hidden;
+}
+
+#documentView  > div, #documentForm{
+	height: 610px;
+}
+
+#editorForm > div {
+	height: 235px;
+}
+
+.noScrolllayoutUnit .ui-layout-unit-content {
+	overflow: hidden;
+}
+
+.noXScrolllayoutUnit .ui-layout-unit-content {
+	overflow-x: hidden;
+}
+
+.ui-dock-container-bottom {
+	border: 0;
+}
+
+#mainPanel {
+	background-image: url("../resources/images/background.png");
+	
+    /* Full height */
+    height: 100%; 
+
+    /* Center and scale the image nicely */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.desktop > div {
+	background: none;
+}
+
+.ui-layout-unit, .ui-layout-unit-content, .ui-toolbar, .ui-dialog, .ui-widget {
+	background: none;
+	border: 0;
+}
+
+#dockForm\3a dockMenu > div > a > span {
+	color: white;
+}
+
+
+.ui-menu, .ui-menu .ui-menu-child {
+	background: mintcream;
+}
+
+div.ui-dialog-titlebar.ui-widget-header.ui-helper-clearfix.ui-corner-top.ui-draggable-handle {
+	background: teal;
+	color: white;
+}
+
+div.ui-dialog-content.ui-widget-content {
+	background: mintcream; 
+}
+
+#groovyScriptForm > .CodeMirror {
+	height: 630px !important
+}
+
+
+</style>
+</h:head>
+
+<h:body id="mainPanel">
+
+	<p:layout fullPage="true">
+
+		<p:layoutUnit position="north" styleClass="noScrolllayoutUnit">
+			<p:toolbar>
+				<f:facet name="left">
+					<p:commandLink onclick="PF('info').show()" title="About">
+						<p:graphicImage height="30" value="/resources/images/info.ico" />
+					</p:commandLink>
+				</f:facet>
+				
+				<f:facet name="right">
+					<p:commandLink title="Logout" action="#{userSessionBean.logout()}">
+						<p:graphicImage height="30" value="/resources/images/logout.png" />
+					</p:commandLink>
+				</f:facet>
+			</p:toolbar>
+		</p:layoutUnit>
+		<p:layoutUnit styleClass="desktop" position="center">
+			<p:growl showDetail="true" autoUpdate="false" sticky="true" id="msgs"
+				widgetVar="msgs" />
+				
+			<p:dialog header="About This Machine" draggable="true" widgetVar="info"
+				showEffect="fade" hideEffect="fade" resizable="false" dynamic="true">
+				<h:form>
+					<h:panelGrid columns="1" style="width:100%;text-align:center;">
+						<p:graphicImage value="/resources/images/#{osInfoUtils.osIcon}" />
+						<h:outputText value="#{osInfoUtils.getOsName()}" style="font-size:20px" />
+						<h:outputText value="Version #{osInfoUtils.getOsVersion()}" />
+						<p:commandButton value="dev-tools" async="true"
+							onclick="return false;" />
+					</h:panelGrid>
+				</h:form>
+			</p:dialog>
+
+			<p:dialog widgetVar="terminal" width="90%" height="700" position="center top" style="margin: 10px;"
+				header="Terminal" resizable="false" showEffect="fade" dynamic="true"
+				hideEffect="fade" styleClass="terminalDialog">
+				<h:form id="terminalForm">
+					<p:terminal id="terminal" widgetVar="term" prompt="#{osInfoUtils.getOsName().toLowerCase().contains('windows') ? 'cmd &gt; ' : 'sh $ ' } "
+						commandHandler="#{terminalView.execCommand}"
+						welcomeMessage="Execute OS commands" style="height: 690px;" />
+				</h:form>
+			</p:dialog>
+
+
+			<p:dialog widgetVar="fileWalker" width="40%" height="700" style="margin: 10px;"
+				header="File Walker" resizable="false" showEffect="fade"
+				hideEffect="fade" position="left top" dynamic="true">
+				<ui:include src="/pages/fragments/fileWalker.xhtml" />
+			</p:dialog>
+			
+			<p:dialog id="groovyEditorDialog" widgetVar="groovyEditorDialog" width="90%" height="700" style="margin: 10px;"
+				header="Groovy Editor" resizable="false" showEffect="fade"
+				hideEffect="fade" dynamic="true">
+				<ui:include src="/pages/fragments/groovyEditor.xhtml" />
+			</p:dialog>
+
+			<p:dialog widgetVar="sql" width="90%" height="700"
+				header="SQL Editor" resizable="false" showEffect="fade"
+				hideEffect="fade" dynamic="true">
+				<ui:include src="/pages/fragments/sqlEditor.xhtml" />
+			</p:dialog>
+			
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+				<p:panelGrid columns="2" style="width:105%; text-align:center;" styleClass="ui-noborder">
+				    <p:commandButton update=":dockForm:dockMenu" value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+					<p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+				</p:panelGrid>
+			</p:confirmDialog>
+
+			<h:form id="dockForm">
+				<p:dock id="dockMenu">
+					<p:menuitem value="Files" icon="/resources/images/files.png"
+						onclick="PF('fileWalker').show();" url="#" />
+					<p:menuitem value="SQL" icon="/resources/images/sql.ico"
+						onclick="PF('sql').show();" url="#" />
+					<p:menuitem value="Terminal" icon="/resources/images/terminal.png"
+						onclick="PF('terminal').show();" url="#" />
+						
+					<p:menuitem value="Editor" icon="/resources/images/codeMirror.png"
+						onclick="PF('fileEditorDialog').show();" rendered="#{not empty fileWalkerView.selectedDocumentModel}" url="#" />
+					
+					<p:menuitem value="Groovy Editor" icon="/resources/images/groovy.png"
+						onclick="PF('groovyEditorDialog').show();" url="#" />
+				</p:dock>
+			</h:form>
+			<ui:include src="/pages/fragments/fileEditor.xhtml" />
+			
+			<p:dialog header="Loading..." widgetVar="blockAll" closable="false" resizable="false" modal="true" appendTo="@(body)">
+				<p:graphicImage value="/resources/images/loading-spinner.gif" />
+			</p:dialog>
+			
+		</p:layoutUnit>
+
+	</p:layout>
+</h:body>
+</html>

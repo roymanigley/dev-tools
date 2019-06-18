@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+<h:head>
+	<style>
+	
+root {
+    font-size: 12px;
+    font-family: monospace;
+}
+
+.ui-widget {
+    font-family: monospace;
+    font-size: 1em;
+}
+.ui-widget .ui-widget {
+    font-size: 1em;
+}
+.ui-widget input,
+.ui-widget select,
+.ui-widget textarea,
+.ui-widget button {
+    font-family: monospace;
+    font-size: 0.8em;
+}
+
+.ui-tree {
+	border: 0;
+}
+.ui-widget-header {
+	background: none;
+}
+
+div.ui-login-content>div>div {
+	white-space: pre;
+}
+
+#loginForm\3a login {
+	background: black;
+    color: aquamarine;
+}
+
+.ui-widget-content .ui-state-default {
+	background: none;
+}
+
+.ui-datatable .ui-column-filter {
+	width: 100%;
+}
+
+.ui-widget-header .ui-datatable-scrollable-footer {
+	display: none;
+	visibility: hidden;
+}
+.ui-datatable-scrollable-footer-box {
+	display: none;
+	visibility: hidden;
+}
+
+.CodeMirror {
+	height: 100%;
+}
+.CodeMirror .cm-s-eclipse   {
+	height: 800px;
+}
+.ui-tree-container {
+	overflow: hidden;
+}
+
+#documentView  > div, #documentForm{
+	height: 610px;
+}
+
+#editorForm > div {
+	height: 235px;
+}
+
+.noScrolllayoutUnit .ui-layout-unit-content {
+	overflow: hidden;
+}
+
+.noXScrolllayoutUnit .ui-layout-unit-content {
+	overflow-x: hidden;
+}
+
+.ui-dock-container-bottom {
+	border: 0;
+}
+
+#mainPanel {
+	background-image: url("resources/images/background.png");
+	background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+}
+.desktop > div {
+	background: none;
+}
+
+.ui-layout-unit, .ui-layout-unit-content, .ui-toolbar, .ui-dialog, .ui-widget {
+	background: none;
+	border: 0;
+}
+
+#dockForm\3a dockMenu > div > a > span {
+	color: white;
+}
+
+
+.ui-menu, .ui-menu .ui-menu-child {
+	background: mintcream;
+}
+
+div.ui-dialog-titlebar.ui-widget-header.ui-helper-clearfix.ui-corner-top.ui-draggable-handle {
+	background: teal;
+	color: white;
+}
+
+div.ui-dialog-content.ui-widget-content {
+	background: mintcream; 
+}
+</style>
+</h:head>
+
+<h:body id="mainPanel">
+
+	<p:layout fullPage="true">
+		<p:layoutUnit position="center">
+			<p:growl showDetail="false" autoUpdate="false" sticky="true" id="msgs"
+				widgetVar="msgs" />
+			<p:dialog widgetVar="login" visible="true" closable="valse"
+				header="Login" resizable="false" showEffect="fade"
+				hideEffect="fade" styleClass="loginDialog">
+				<h:form id="loginForm">
+					<p:panelGrid columns="2" style="width:100%;" styleClass="ui-noborder">
+					
+						<p:outputLabel value="Username" for="username" />
+						<p:inputText value="#{authenticationBean.username}" id="username" required="true" />
+						
+						<p:outputLabel value="Password" for="password" />
+						<p:password value="#{authenticationBean.password}" id="password" required="true" />
+					</p:panelGrid>
+					<p:panelGrid columns="1" style="text-align:center;width:100%;" styleClass="ui-noborder">
+						<p:commandButton icon="ui-icon-check" validateClient="true" update=":msgs"
+							action="#{authenticationBean.authenticate()}"
+							onclick="PF('blockUILogin').show()" oncomplete="PF('blockUILogin').hide()" />
+					</p:panelGrid>
+				</h:form>
+			</p:dialog>
+
+			<p:dialog header="Loading..." widgetVar="blockUILogin" closable="false" resizable="false" modal="true" appendTo="@(body)">
+				<p:graphicImage value="/resources/images/loading-spinner.gif" />
+			</p:dialog>
+			
+			<h:form id="dockForm">
+				<p:dock id="dockMenu">
+					<p:menuitem value="Finder" icon="/resources/images/files.png"
+						url="#" />
+					<p:menuitem value="SQL" icon="/resources/images/sql.ico"
+						url="#" />
+					<p:menuitem value="Terminal" icon="/resources/images/terminal.png"
+						url="#" />
+				</p:dock>
+			</h:form>
+		</p:layoutUnit>
+
+	</p:layout>
+</h:body>
+
+</html>
