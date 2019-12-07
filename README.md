@@ -17,10 +17,11 @@
 ## Start the application
   - Run as JAR (parameters are optional)
 ```
-java -jar target/dev-tools\#\#1.0.jar -httpPort=7070 \  
- -Dsqleditor-jdbc-url=jdbc:mysql://localhost:3306/classicmodels \
+java -Dsqleditor-jdbc-url=jdbc:mysql://localhost:3306/classicmodels \
+ -Dsqleditor-jdbc-url="jdbc:sqlserver://localhost:1433;databaseName=classicmodels" \
  -Dsqleditor-username=root \
- -Dsqleditor-password=toor
+ -Dsqleditor-password=toor \
+ -jar target/dev-tools\#\#1.0.jar -httpPort=7070 \
  ```
   - Deploy as WAR
 ```target/dev-tools##1.0.war```
